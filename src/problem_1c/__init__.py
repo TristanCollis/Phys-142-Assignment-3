@@ -1,0 +1,1 @@
+from problem_1c.problem_1c import *
