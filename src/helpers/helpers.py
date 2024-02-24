@@ -71,7 +71,7 @@ def Laplace_matrix(
     for i in range(result.shape[1]):
         for j in range(result.shape[2]):
             result[0, i, j] = dx**-2 * (
-                int(i + 1 == j) + 2 * int(i == j) + int(i - 1 == j)
+                int((i + 1) == j) - 2 * int(i == j) + int((i - 1) == j)
             )
 
     return result
@@ -82,7 +82,7 @@ def H_matrix(
     alphas: np.ndarray[float, Any] = const.ALPHA_AS_ARRAY,
     dx: float = const.DX,
 ) -> np.ndarray[float, Any]:
-    return Laplace_matrix(x, dx) + np.expand_dims(np.diagflat(V(x, alphas)), 0)
+    return -0.5 * Laplace_matrix(x, dx) + np.expand_dims(np.diagflat(V(x, alphas)), 0)
 
 
 def H_operator(
@@ -137,7 +137,7 @@ def animate(
         return line1
 
     ani = FuncAnimation(
-        fig, update, frames=np.arange(frame_data.shape[0]), init_func=init, interval=50
+        fig, update, frames=np.arange(frame_data.shape[0]), init_func=init, interval=10
     )
 
     ani.save(filename)

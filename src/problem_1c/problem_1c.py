@@ -1,3 +1,4 @@
+from typing import Any
 import numpy as np
 import scipy.sparse.linalg
 
@@ -5,7 +6,7 @@ import constants as const
 from helpers import animate, K_0, normalize, H_matrix
 
 
-def run(filename: str = "problem_1c.mp4") -> None:
+def run(filename: str = f"{__name__.split(".")[-1]}.mp4") -> None:
     H = H_matrix()
 
     Es, psis = scipy.sparse.linalg.eigsh(np.squeeze(H), k=2, sigma=0, which="LM")
@@ -21,6 +22,6 @@ def run(filename: str = "problem_1c.mp4") -> None:
         + np.exp(-1j * E_1 * const.T).reshape(-1, 1) * psi_1
     )
 
-    psi_pdf = np.abs(psi_t) ** 2
+    psi_pdf: np.ndarray[float, Any] = np.abs(psi_t) ** 2
 
-    animate(np.squeeze(psi_pdf), np.squeeze(const.X), filename)
+    animate(np.squeeze(psi_pdf)[:psi_pdf.size//4], np.squeeze(const.X), filename)
