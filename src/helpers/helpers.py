@@ -81,7 +81,7 @@ def H_matrix(
     x: np.ndarray[float, Any] = const.X,
     alphas: np.ndarray[float, Any] = const.ALPHA_AS_ARRAY,
     dx: float = const.DX,
-) -> np.ndarray[float, Any]:
+) -> np.ndarray[complex, Any]:
     return -0.5 * Laplace_matrix(x, dx) + np.expand_dims(np.diagflat(V(x, alphas)), 0)
 
 
@@ -141,3 +141,53 @@ def animate(
     )
 
     ani.save(filename)
+
+def magnetization(lattice: np.ndarray[float, Any]) -> float:
+    return np.sum(lattice) / np.size(lattice)
+
+
+def energy(lattice: np.ndarray[float, Any]) -> float:
+    offset_lattice = np.zeros_like(lattice)
+    offset_lattice[0, :] = lattice[-1, :]
+    offset_lattice[:, 0] = lattice[:, -1]
+    offset_lattice[1:, 1:] = lattice[:-1, :-1]
+
+    return -float(np.sum(lattice * offset_lattice))
+
+
+def delta_E(lattice: np.ndarray[float, Any], indices: tuple) -> float:
+    i, j = indices
+    bound = lattice.shape[0]
+    return float(2*lattice[i, j] * (
+        lattice[(i-1) % bound, j] 
+        + lattice[(i+1) % bound, j] 
+        + lattice[i, (j-1) % bound] 
+        + lattice[i, (j+1) % bound]
+        ))
+
+
+
+def mcmc_step(lattice: np.ndarray[float, Any], temperature: float) -> np.ndarray[float, Any]:
+    new_lattice: np.ndarray[float, Any] = np.copy(lattice)
+
+    i, j = np.random.randint(low=0, high=lattice.shape[0], size=2)
+
+    dE = delta_E(lattice, (i, j))
+
+    if dE <= 0 or np.random.random() < np.exp(-dE / temperature):
+        new_lattice[i, j] *= -1
+
+    return new_lattice
+
+
+def mcmc_full(lattice: np.ndarray[float, Any], temperature: float, steps: int) -> np.ndarray[float, Any]:
+    magnetization_vs_t = np.zeros(steps)
+
+    new_lattice = np.copy(lattice)
+
+    for t in range(steps):
+
+        new_lattice = mcmc_step(new_lattice, temperature)
+        magnetization_vs_t[t] = magnetization(new_lattice)
+
+    return magnetization_vs_t

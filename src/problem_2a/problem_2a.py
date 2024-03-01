@@ -1,40 +1,34 @@
-from typing import Any
+from matplotlib import pyplot as plt
 import numpy as np
+from helpers import mcmc_full
 
 
-def magnetization(lattice: np.ndarray[float, Any]) -> float:
-    return np.sum(lattice) / np.size(lattice)
+def run(N: int, temperature: float, steps: int, show: bool = False, save: bool = False) -> None:
 
+    lattice_up = np.ones((N, N))
 
-def energy(lattice: np.ndarray[float, Any]) -> float:
-    offset_lattice = np.zeros_like(lattice)
-    offset_lattice[0, :] = lattice[-1, :]
-    offset_lattice[:, 0] = lattice[:, -1]
-    offset_lattice[1:-1, 1:-1] = lattice[:-2, :-2]
+    magnetization_up = mcmc_full(lattice_up, temperature, steps)
 
-    return -float(np.sum(lattice * offset_lattice))
+    plt.plot(magnetization_up)
 
+    if show:
+        plt.show()
 
-def delta_E(lattice: np.ndarray[float, Any], indices: tuple) -> float:
-    i, j = indices
-    bound = lattice.shape[0]
-    return float(-2*lattice[i, j] * (
-        lattice[(i-1) % bound, j] 
-        + lattice[(i+1) % bound, j] 
-        + lattice[i, (j-1) % bound] 
-        + lattice[i, (j+1) % bound]
-        ))
+    if save:
+        plt.savefig(fname="problem_2a_up.png")
 
+    plt.clf()
 
+    lattice_random = np.random.randint(0, 3, size=(N,N)) - 1
 
-def monte_carlo(lattice: np.ndarray[float, Any], Temperature: float, steps: int):
-    for _ in range(steps):
-        i, j = np.random.randint(low=0, high=lattice.shape[0], size=2)
+    magnetization_random = mcmc_full(lattice_random, temperature, steps)
 
-        dE = delta_E(lattice, (i, j))
-        
-        if dE <= 0 or np.random.random() <= np.exp(-dE / Temperature):
-            lattice[i, j] *= -1
+    plt.plot(magnetization_random)
 
+    if show:
+        plt.show()
 
-def run():...
+    if save:
+        plt.savefig(fname="problem_2a_random.png")
+
+    plt.clf()
